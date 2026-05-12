@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Tier List Builder - M4A4 Edition</title>
+    <title>Master Tier List Builder</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,10 +14,10 @@
         :root {
             --bg-color: #121212;
             --tier-label-width: 100px;
-            --img-size: 100px;         /* รูปในเทียร์ */
-            --bank-img-size: 140px;    /* รูปในคลัง */
+            --img-size: 100px;
+            --bank-img-size: 140px;
             --row-width: 900px;
-            --bank-area-size: 350px;   /* พื้นที่รวมของคลัง */
+            --bank-area-size: 350px;
             --gap: 10px;
         }
 
@@ -27,8 +27,7 @@
             margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center;
         }
 
-        /* --- UI Navigation --- */
-        .ui-container { display: flex; gap: 12px; margin-bottom: 25px; transition: 0.4s; }
+        .ui-container { display: flex; gap: 12px; margin-bottom: 25px; transition: 0.4s; flex-wrap: wrap; justify-content: center; }
         .ui-hidden { opacity: 0; pointer-events: none; transform: translateY(-30px); }
         button {
             background: #2d2d2d; color: white; border: 1px solid #444;
@@ -37,11 +36,9 @@
         }
         button:hover { background: #444; transform: translateY(-2px); }
 
-        /* --- Workspace Layout --- */
         .app-wrapper { display: flex; gap: 30px; width: 100%; justify-content: center; transition: 0.3s; }
         .layout-bottom { flex-direction: column; align-items: center; }
 
-        /* --- Tier List --- */
         .tier-row {
             display: flex; background: #000; border-radius: 12px;
             width: var(--row-width); margin-bottom: 10px;
@@ -56,7 +53,6 @@
             flex: 1; display: flex; flex-wrap: wrap; gap: var(--gap); padding: 12px;
         }
 
-        /* --- Item Bank (The Frame) --- */
         .bank-wrapper {
             background: rgba(255,255,255,0.03); padding: 20px; border-radius: 20px;
             border: 2px dashed #333; transition: 0.3s;
@@ -66,7 +62,6 @@
 
         .item-bank { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
 
-        /* --- Draggable Items --- */
         .item {
             object-fit: cover; cursor: grab; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s, transform 0.2s;
@@ -74,7 +69,6 @@
         .tier-content .item { width: var(--img-size); height: var(--img-size); border-radius: 6px; }
         .item-bank .item { width: var(--bank-img-size); height: var(--bank-img-size); border-radius: 10px; }
 
-        /* --- Settings Panel --- */
         #settings-panel {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: #1e1e1e; padding: 30px; border-radius: 24px;
@@ -98,10 +92,8 @@
 </head>
 <body class="layout-side">
 
-    <!-- Settings Menu -->
     <div id="settings-panel">
         <h2 style="margin:0 0 10px 0;">Control Center</h2>
-        
         <div class="set-row">
             <label>ตำแหน่งคลังรูป</label>
             <select onchange="changeLayout(this.value)" style="padding:8px; background:#333; color:#fff; border:none; font-family:'Kanit';">
@@ -109,46 +101,31 @@
                 <option value="layout-bottom">วางด้านล่าง (Bottom Bar)</option>
             </select>
         </div>
-
         <div class="set-row">
-            <label>ขนาดรูปในคลัง (Right/Bottom Box)</label>
+            <label>ขนาดรูปในคลัง</label>
             <input type="range" min="80" max="300" value="140" oninput="updateVar('--bank-img-size', this.value + 'px')">
         </div>
-
         <div class="set-row">
-            <label id="area-label">ความกว้างพื้นที่คลัง (Sidebar)</label>
+            <label id="area-label">ขนาดพื้นที่คลัง</label>
             <input type="range" min="200" max="1200" value="350" oninput="updateVar('--bank-area-size', this.value + 'px')">
         </div>
-
         <hr style="border: 0; border-top: 1px solid #333; margin: 5px 0;">
-
         <div class="set-row">
-            <label>ขนาดรูปในเทียร์ (Inside Tier)</label>
+            <label>ขนาดรูปในเทียร์</label>
             <input type="range" min="50" max="150" value="100" oninput="updateVar('--img-size', this.value + 'px')">
         </div>
-
-        <div class="set-row">
-            <label>ความกว้างช่องข้อความ (Label)</label>
-            <input type="range" min="50" max="250" value="100" oninput="updateVar('--tier-label-width', this.value + 'px')">
-        </div>
-
-        <div class="set-row">
-            <label>ความกว้างแถวทั้งหมด</label>
-            <input type="range" min="600" max="1500" value="900" oninput="updateVar('--row-width', this.value + 'px')">
-        </div>
-
         <button onclick="toggleSettings()" style="background:#fff; color:#000; font-weight:bold;">DONE</button>
     </div>
 
-    <!-- UI Buttons -->
     <div id="main-ui" class="ui-container">
-        <button onclick="addTier()">+ เพิ่มแถว</button>
-        <button onclick="removeTier()">- ลบแถว</button>
-        <button onclick="toggleUI()">👁 ซ่อนเมนู</button>
+        <button onclick="addTier()">+</button>
+        <button onclick="removeTier()">-</button>
+        <button onclick="toggleUI()">👁</button>
         <button onclick="toggleSettings()">⚙️ SETTINGS</button>
+        <button style="background:#444; border:none;" onclick="document.getElementById('file-input').click()">UPLOAD</button>
+        <button style="background:#0066cc; border:none;" onclick="loadGitHubImages()">RELOAD GITHUB</button>
     </div>
 
-    <!-- Workspace -->
     <div id="app-wrapper" class="app-wrapper layout-side">
         <div id="tier-list-root" style="display:flex; flex-direction:column; gap:10px;">
             <div class="tier-row"><div class="tier-label c1" contenteditable="true">S</div><div class="tier-content"></div></div>
@@ -157,39 +134,46 @@
         </div>
 
         <div id="bank-box" class="bank-wrapper">
-            <div id="item-bank" class="item-bank">
-                <!-- รูปจาก GitHub จะโหลดมาไว้ตรงนี้ -->
-            </div>
+            <div id="item-bank" class="item-bank"></div>
         </div>
     </div>
 
+    <input type="file" id="file-input" multiple accept="image/*" style="display:none" onchange="processUpload(this.files)">
     <button id="restore-ui" onclick="toggleUI()">👁</button>
 
     <script>
         const tierColors = ['#ff7f7f', '#ffbf7f', '#ffff7f', '#7fff7f', '#7fbfff', '#ff7fff'];
         const sortConfig = { group: 'pro-tier', animation: 300, swapThreshold: 0.6, invertSwap: true, onEnd: () => refreshBank() };
 
-        // --- ส่วนที่แก้ไข: ดึงรูปจาก GitHub ---
-        const GITHUB_USER = "NXZ-Tierlist"; // เปลี่ยนชื่อ User ถ้าไม่ใช่
-        const FOLDER_PATH = "m4a4%20tier"; // ชื่อโฟลเดอร์ (เว้นวรรคต้องใช้ %20)
-        const TOTAL_IMAGES = 50;
+        // แก้ไขตามภาพ image_805225.png
+        const GITHUB_URL = "https://raw.githubusercontent.com/yuubearsama/NZX-Tierlist/main/m4a4%20tier/";
 
-        function loadImagesFromGitHub() {
+        function loadGitHubImages() {
             const bank = document.getElementById('item-bank');
-            // สร้างรูป 1.png ถึง 50.png
-            for (let i = 1; i <= TOTAL_IMAGES; i++) {
+            for (let i = 1; i <= 50; i++) {
                 const img = document.createElement('img');
-                // URL รูปภาพ Raw จาก GitHub
-                img.src = `https://raw.githubusercontent.com/${GITHUB_USER}/NXZ-Tierlist/main/${FOLDER_PATH}/${i}.png`;
+                img.src = `${GITHUB_URL}${i}.png`;
                 img.className = 'item';
-                img.loading = "lazy"; // ช่วยให้โหลดหน้าเว็บเร็วขึ้น
-                img.onerror = function() { this.style.display = 'none'; }; // ถ้ารูปไหนไม่มีให้ซ่อนไว้
+                img.loading = "lazy";
+                img.onerror = function() { this.remove(); }; // ถ้ารูปโหลดไม่สำเร็จให้ลบออก
                 bank.appendChild(img);
             }
             initDraggable();
         }
 
-        // ------------------------------------
+        function processUpload(files) {
+            const bank = document.getElementById('item-bank');
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const img = document.createElement('img');
+                    img.src = e.target.result; img.className = 'item';
+                    bank.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+            initDraggable();
+        }
 
         function initDraggable() {
             document.querySelectorAll('.tier-content, #item-bank').forEach(el => {
@@ -201,7 +185,7 @@
             const wrapper = document.getElementById('app-wrapper');
             const label = document.getElementById('area-label');
             wrapper.className = 'app-wrapper ' + val;
-            label.innerText = (val === 'layout-side') ? 'ความกว้างพื้นที่คลัง (Sidebar)' : 'ความสูงพื้นที่คลัง (Bottom Bar)';
+            label.innerText = (val === 'layout-side') ? 'ขนาดพื้นที่คลัง (Sidebar)' : 'ขนาดพื้นที่คลัง (Bottom Bar)';
         }
 
         function addTier() {
@@ -220,7 +204,6 @@
                 const items = Array.from(root.lastElementChild.querySelector('.tier-content').children);
                 items.forEach(item => document.getElementById('item-bank').appendChild(item));
                 root.removeChild(root.lastElementChild);
-                refreshBank();
             }
         }
 
@@ -235,14 +218,15 @@
         }
 
         function updateVar(name, val) { document.documentElement.style.setProperty(name, val); }
-
+        
         function refreshBank() {
-            // ฟังก์ชันนี้เปิดคลังค้างไว้เสมอเพื่อให้เห็นรูป
-            document.getElementById('bank-box').classList.remove('bank-hidden');
+            // รักษาพื้นที่คลังไว้เสมอ
         }
 
-        // เริ่มทำงานเมื่อโหลดหน้าเว็บ
-        window.onload = loadImagesFromGitHub;
+        // โหลดรูปเมื่อเปิดหน้าเว็บ
+        window.onload = function() {
+            loadGitHubImages();
+        };
     </script>
 </body>
 </html>
