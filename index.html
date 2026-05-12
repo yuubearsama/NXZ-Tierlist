@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Tier List Builder</title>
+    <title>Master Tier List Builder - Full Pro</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -27,6 +27,7 @@
             margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center;
         }
 
+        /* UI Buttons */
         .ui-container { display: flex; gap: 12px; margin-bottom: 25px; transition: 0.4s; flex-wrap: wrap; justify-content: center; }
         .ui-hidden { opacity: 0; pointer-events: none; transform: translateY(-30px); }
         button {
@@ -36,9 +37,11 @@
         }
         button:hover { background: #444; transform: translateY(-2px); }
 
+        /* Layout Structure */
         .app-wrapper { display: flex; gap: 30px; width: 100%; justify-content: center; transition: 0.3s; }
         .layout-bottom { flex-direction: column; align-items: center; }
 
+        /* Tier Rows */
         .tier-row {
             display: flex; background: #000; border-radius: 12px;
             width: var(--row-width); margin-bottom: 10px;
@@ -47,12 +50,13 @@
         .tier-label {
             width: var(--tier-label-width); min-width: var(--tier-label-width);
             display: flex; align-items: center; justify-content: center;
-            font-size: 1.8rem; color: rgba(0,0,0,0.6); outline: none;
+            font-size: 1.8rem; color: rgba(0,0,0,0.6); outline: none; text-align: center;
         }
         .tier-content {
             flex: 1; display: flex; flex-wrap: wrap; gap: var(--gap); padding: 12px;
         }
 
+        /* Bank Area */
         .bank-wrapper {
             background: rgba(255,255,255,0.03); padding: 20px; border-radius: 20px;
             border: 2px dashed #333; transition: 0.3s;
@@ -62,6 +66,7 @@
 
         .item-bank { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
 
+        /* Images */
         .item {
             object-fit: cover; cursor: grab; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
             transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s, transform 0.2s;
@@ -69,16 +74,18 @@
         .tier-content .item { width: var(--img-size); height: var(--img-size); border-radius: 6px; }
         .item-bank .item { width: var(--bank-img-size); height: var(--bank-img-size); border-radius: 10px; }
 
+        /* Control Center Panel (image_804701.png) */
         #settings-panel {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: #1e1e1e; padding: 30px; border-radius: 24px;
             display: none; flex-direction: column; gap: 15px;
             box-shadow: 0 40px 100px rgba(0,0,0,1); z-index: 2000;
-            border: 1px solid #333; min-width: 360px;
+            border: 1px solid #333; min-width: 380px;
         }
-        .set-row { display: flex; flex-direction: column; gap: 5px; }
-        .set-row label { font-size: 11px; color: #aaa; text-transform: uppercase; }
-        input[type="range"] { accent-color: #fff; cursor: pointer; margin: 5px 0; }
+        .set-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 5px; }
+        .set-row label { font-size: 12px; color: #aaa; text-transform: uppercase; letter-spacing: 0.5px; }
+        input[type="range"] { accent-color: #fff; cursor: pointer; width: 100%; height: 6px; }
+        select { padding: 10px; background: #2d2d2d; color: #fff; border: 1px solid #444; border-radius: 8px; font-family: 'Kanit'; }
 
         #restore-ui {
             position: fixed; bottom: 30px; left: 30px; width: 60px; height: 60px;
@@ -91,38 +98,55 @@
 </head>
 <body class="layout-side">
 
+    <!-- Control Center กลับมาแล้วตามภาพ image_804701.png -->
     <div id="settings-panel">
-        <h2 style="margin:0 0 10px 0;">Control Center</h2>
+        <h1 style="margin:0 0 20px 0; font-size: 32px;">Control Center</h1>
+        
         <div class="set-row">
             <label>ตำแหน่งคลังรูป</label>
-            <select onchange="changeLayout(this.value)" style="padding:8px; background:#333; color:#fff; border:none; font-family:'Kanit';">
+            <select onchange="changeLayout(this.value)">
                 <option value="layout-side">วางด้านขวา (Sidebar)</option>
                 <option value="layout-bottom">วางด้านล่าง (Bottom Bar)</option>
             </select>
         </div>
+
         <div class="set-row">
-            <label>ขนาดรูปในคลัง</label>
-            <input type="range" min="80" max="300" value="140" oninput="updateVar('--bank-img-size', this.value + 'px')">
+            <label>ขนาดรูปในคลัง (RIGHT/BOTTOM BOX)</label>
+            <input type="range" min="60" max="300" value="140" oninput="updateVar('--bank-img-size', this.value + 'px')">
         </div>
+
         <div class="set-row">
-            <label id="area-label">ขนาดพื้นที่คลัง</label>
+            <label id="area-label">ขนาดพื้นที่คลัง (พื้นที่รวม)</label>
             <input type="range" min="200" max="1200" value="350" oninput="updateVar('--bank-area-size', this.value + 'px')">
         </div>
-        <hr style="border: 0; border-top: 1px solid #333; margin: 5px 0;">
+
+        <hr style="border: 0; border-top: 1px solid #333; margin: 10px 0;">
+
         <div class="set-row">
-            <label>ขนาดรูปในเทียร์</label>
-            <input type="range" min="50" max="150" value="100" oninput="updateVar('--img-size', this.value + 'px')">
+            <label>ขนาดรูปในเทียร์ (INSIDE TIER)</label>
+            <input type="range" min="40" max="200" value="100" oninput="updateVar('--img-size', this.value + 'px')">
         </div>
-        <button onclick="toggleSettings()" style="background:#fff; color:#000; font-weight:bold;">DONE</button>
+
+        <div class="set-row">
+            <label>ความกว้างช่องข้อความ (LABEL)</label>
+            <input type="range" min="50" max="300" value="100" oninput="updateVar('--tier-label-width', this.value + 'px')">
+        </div>
+
+        <div class="set-row">
+            <label>ความกว้างแถวทั้งหมด</label>
+            <input type="range" min="500" max="1600" value="900" oninput="updateVar('--row-width', this.value + 'px')">
+        </div>
+
+        <button onclick="toggleSettings()" style="background:#fff; color:#000; font-weight:bold; margin-top:15px; padding: 15px;">DONE</button>
     </div>
 
     <div id="main-ui" class="ui-container">
-        <button onclick="addTier()">+</button>
-        <button onclick="removeTier()">-</button>
-        <button onclick="toggleUI()">👁</button>
-        <button onclick="toggleSettings()">⚙️ SETTINGS</button>
-        <button style="background:#444; border:none;" onclick="document.getElementById('file-input').click()">UPLOAD</button>
-        <button style="background:#0066cc; border:none;" onclick="loadGitHubImages()">RELOAD GITHUB</button>
+        <button onclick="addTier()" style="font-weight: bold;">+ ADD TIER</button>
+        <button onclick="removeTier()">- REMOVE</button>
+        <button onclick="toggleUI()">👁 HIDE UI</button>
+        <button onclick="toggleSettings()" style="background: #fff; color: #000;">⚙️ SETTINGS</button>
+        <button onclick="document.getElementById('file-input').click()">UPLOAD</button>
+        <button style="background:#0066cc;" onclick="loadGitHubImages()">RELOAD GITHUB</button>
     </div>
 
     <div id="app-wrapper" class="app-wrapper layout-side">
@@ -142,9 +166,9 @@
 
     <script>
         const tierColors = ['#ff7f7f', '#ffbf7f', '#ffff7f', '#7fff7f', '#7fbfff', '#ff7fff'];
-        const sortConfig = { group: 'pro-tier', animation: 300, swapThreshold: 0.6, invertSwap: true };
+        const sortConfig = { group: 'pro-tier', animation: 250, swapThreshold: 0.6, invertSwap: true };
 
-        // URL ที่ปรับให้ดึงจากลิงก์ล่าสุดที่คุณส่งมา (ใช้ Commit Hash เฉพาะกิจเพื่อความชัวร์)
+        // Path GitHub ล่าสุดที่คุณส่งมา
         const GITHUB_URL = "https://raw.githubusercontent.com/yuubearsama/NXZ-Tierlist/f6e5ad737f51be416c8854ec1a1bdbfe07367238/m4a4%20tier/";
 
         function loadGitHubImages() {
@@ -183,9 +207,7 @@
 
         function changeLayout(val) {
             const wrapper = document.getElementById('app-wrapper');
-            const label = document.getElementById('area-label');
             wrapper.className = 'app-wrapper ' + val;
-            label.innerText = (val === 'layout-side') ? 'ขนาดพื้นที่คลัง (Sidebar)' : 'ขนาดพื้นที่คลัง (Bottom Bar)';
         }
 
         function addTier() {
@@ -219,9 +241,7 @@
 
         function updateVar(name, val) { document.documentElement.style.setProperty(name, val); }
 
-        window.onload = function() {
-            loadGitHubImages();
-        };
+        window.onload = function() { loadGitHubImages(); };
     </script>
 </body>
 </html>
