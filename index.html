@@ -80,7 +80,6 @@
         .set-row label { font-size: 11px; color: #aaa; text-transform: uppercase; }
         input[type="range"] { accent-color: #fff; cursor: pointer; margin: 5px 0; }
 
-        .bank-hidden { display: none !important; }
         #restore-ui {
             position: fixed; bottom: 30px; left: 30px; width: 60px; height: 60px;
             background: #fff; color: #000; border-radius: 50%; display: none;
@@ -143,19 +142,20 @@
 
     <script>
         const tierColors = ['#ff7f7f', '#ffbf7f', '#ffff7f', '#7fff7f', '#7fbfff', '#ff7fff'];
-        const sortConfig = { group: 'pro-tier', animation: 300, swapThreshold: 0.6, invertSwap: true, onEnd: () => refreshBank() };
+        const sortConfig = { group: 'pro-tier', animation: 300, swapThreshold: 0.6, invertSwap: true };
 
-        // แก้ไขตามภาพ image_805225.png
-        const GITHUB_URL = "https://raw.githubusercontent.com/yuubearsama/NZX-Tierlist/main/m4a4%20tier/";
+        // URL ที่ปรับให้ดึงจากลิงก์ล่าสุดที่คุณส่งมา (ใช้ Commit Hash เฉพาะกิจเพื่อความชัวร์)
+        const GITHUB_URL = "https://raw.githubusercontent.com/yuubearsama/NXZ-Tierlist/f6e5ad737f51be416c8854ec1a1bdbfe07367238/m4a4%20tier/";
 
         function loadGitHubImages() {
             const bank = document.getElementById('item-bank');
+            bank.innerHTML = ''; 
             for (let i = 1; i <= 50; i++) {
                 const img = document.createElement('img');
                 img.src = `${GITHUB_URL}${i}.png`;
                 img.className = 'item';
                 img.loading = "lazy";
-                img.onerror = function() { this.remove(); }; // ถ้ารูปโหลดไม่สำเร็จให้ลบออก
+                img.onerror = function() { this.remove(); }; 
                 bank.appendChild(img);
             }
             initDraggable();
@@ -218,12 +218,7 @@
         }
 
         function updateVar(name, val) { document.documentElement.style.setProperty(name, val); }
-        
-        function refreshBank() {
-            // รักษาพื้นที่คลังไว้เสมอ
-        }
 
-        // โหลดรูปเมื่อเปิดหน้าเว็บ
         window.onload = function() {
             loadGitHubImages();
         };
