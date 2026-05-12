@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Tier List Builder</title>
+    <title>Master Tier List Builder - M4A4 Edition</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,7 +15,7 @@
             --bg-color: #121212;
             --tier-label-width: 100px;
             --img-size: 100px;         /* รูปในเทียร์ */
-            --bank-img-size: 140px;    /* รูปในคลัง (นำกลับมาปรับได้แล้ว) */
+            --bank-img-size: 140px;    /* รูปในคลัง */
             --row-width: 900px;
             --bank-area-size: 350px;   /* พื้นที่รวมของคลัง */
             --gap: 10px;
@@ -62,7 +62,7 @@
             border: 2px dashed #333; transition: 0.3s;
         }
         .layout-side .bank-wrapper { width: var(--bank-area-size); min-height: 500px; }
-        .layout-bottom .bank-wrapper { width: var(--row-width); height: var(--bank-area-size); }
+        .layout-bottom .bank-wrapper { width: var(--row-width); height: var(--bank-area-size); overflow-y: auto; }
 
         .item-bank { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
 
@@ -116,7 +116,7 @@
         </div>
 
         <div class="set-row">
-            <label id="area-label">ขนาดพื้นที่คลัง (พื้นที่รวม)</label>
+            <label id="area-label">ความกว้างพื้นที่คลัง (Sidebar)</label>
             <input type="range" min="200" max="1200" value="350" oninput="updateVar('--bank-area-size', this.value + 'px')">
         </div>
 
@@ -142,11 +142,10 @@
 
     <!-- UI Buttons -->
     <div id="main-ui" class="ui-container">
-        <button onclick="addTier()">+</button>
-        <button onclick="removeTier()">-</button>
-        <button onclick="toggleUI()">👁</button>
+        <button onclick="addTier()">+ เพิ่มแถว</button>
+        <button onclick="removeTier()">- ลบแถว</button>
+        <button onclick="toggleUI()">👁 ซ่อนเมนู</button>
         <button onclick="toggleSettings()">⚙️ SETTINGS</button>
-        <button style="background:#444; border:none;" onclick="document.getElementById('file-input').click()">UPLOAD</button>
     </div>
 
     <!-- Workspace -->
@@ -157,17 +156,40 @@
             <div class="tier-row"><div class="tier-label c3" contenteditable="true">B</div><div class="tier-content"></div></div>
         </div>
 
-        <div id="bank-box" class="bank-wrapper bank-hidden">
-            <div id="item-bank" class="item-bank"></div>
+        <div id="bank-box" class="bank-wrapper">
+            <div id="item-bank" class="item-bank">
+                <!-- รูปจาก GitHub จะโหลดมาไว้ตรงนี้ -->
+            </div>
         </div>
     </div>
 
-    <input type="file" id="file-input" multiple accept="image/*" style="display:none" onchange="processUpload(this.files)">
     <button id="restore-ui" onclick="toggleUI()">👁</button>
 
     <script>
         const tierColors = ['#ff7f7f', '#ffbf7f', '#ffff7f', '#7fff7f', '#7fbfff', '#ff7fff'];
         const sortConfig = { group: 'pro-tier', animation: 300, swapThreshold: 0.6, invertSwap: true, onEnd: () => refreshBank() };
+
+        // --- ส่วนที่แก้ไข: ดึงรูปจาก GitHub ---
+        const GITHUB_USER = "NXZ-Tierlist"; // เปลี่ยนชื่อ User ถ้าไม่ใช่
+        const FOLDER_PATH = "m4a4%20tier"; // ชื่อโฟลเดอร์ (เว้นวรรคต้องใช้ %20)
+        const TOTAL_IMAGES = 50;
+
+        function loadImagesFromGitHub() {
+            const bank = document.getElementById('item-bank');
+            // สร้างรูป 1.png ถึง 50.png
+            for (let i = 1; i <= TOTAL_IMAGES; i++) {
+                const img = document.createElement('img');
+                // URL รูปภาพ Raw จาก GitHub
+                img.src = `https://raw.githubusercontent.com/${GITHUB_USER}/NXZ-Tierlist/main/${FOLDER_PATH}/${i}.png`;
+                img.className = 'item';
+                img.loading = "lazy"; // ช่วยให้โหลดหน้าเว็บเร็วขึ้น
+                img.onerror = function() { this.style.display = 'none'; }; // ถ้ารูปไหนไม่มีให้ซ่อนไว้
+                bank.appendChild(img);
+            }
+            initDraggable();
+        }
+
+        // ------------------------------------
 
         function initDraggable() {
             document.querySelectorAll('.tier-content, #item-bank').forEach(el => {
@@ -180,20 +202,6 @@
             const label = document.getElementById('area-label');
             wrapper.className = 'app-wrapper ' + val;
             label.innerText = (val === 'layout-side') ? 'ความกว้างพื้นที่คลัง (Sidebar)' : 'ความสูงพื้นที่คลัง (Bottom Bar)';
-        }
-
-        function processUpload(files) {
-            const bank = document.getElementById('item-bank');
-            document.getElementById('bank-box').classList.remove('bank-hidden');
-            Array.from(files).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    const img = document.createElement('img');
-                    img.src = e.target.result; img.className = 'item';
-                    bank.appendChild(img);
-                };
-                reader.readAsDataURL(file);
-            });
         }
 
         function addTier() {
@@ -229,11 +237,12 @@
         function updateVar(name, val) { document.documentElement.style.setProperty(name, val); }
 
         function refreshBank() {
-            const bank = document.getElementById('item-bank');
-            document.getElementById('bank-box').classList.toggle('bank-hidden', bank.children.length === 0);
+            // ฟังก์ชันนี้เปิดคลังค้างไว้เสมอเพื่อให้เห็นรูป
+            document.getElementById('bank-box').classList.remove('bank-hidden');
         }
 
-        initDraggable();
+        // เริ่มทำงานเมื่อโหลดหน้าเว็บ
+        window.onload = loadImagesFromGitHub;
     </script>
 </body>
 </html>
