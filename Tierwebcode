@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Tier List Builder</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    
+    <style>
+        :root {
+            --bg-color: #121212;
+            --tier-label-width: 100px;
+            --img-size: 100px;         /* รูปในเทียร์ */
+            --bank-img-size: 140px;    /* รูปในคลัง (นำกลับมาปรับได้แล้ว) */
+            --row-width: 900px;
+            --bank-area-size: 350px;   /* พื้นที่รวมของคลัง */
+            --gap: 10px;
+        }
+
+        body {
+            background-color: var(--bg-color); color: white;
+            font-family: 'Kanit', sans-serif; font-weight: 500;
+            margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center;
+        }
+
+        /* --- UI Navigation --- */
+        .ui-container { display: flex; gap: 12px; margin-bottom: 25px; transition: 0.4s; }
+        .ui-hidden { opacity: 0; pointer-events: none; transform: translateY(-30px); }
+        button {
+            background: #2d2d2d; color: white; border: 1px solid #444;
+            padding: 10px 18px; border-radius: 10px; cursor: pointer;
+            font-family: 'Kanit'; transition: 0.2s;
+        }
+        button:hover { background: #444; transform: translateY(-2px); }
+
+        /* --- Workspace Layout --- */
+        .app-wrapper { display: flex; gap: 30px; width: 100%; justify-content: center; transition: 0.3s; }
+        .layout-bottom { flex-direction: column; align-items: center; }
+
+        /* --- Tier List --- */
+        .tier-row {
+            display: flex; background: #000; border-radius: 12px;
+            width: var(--row-width); margin-bottom: 10px;
+            min-height: calc(var(--img-size) + 25px); overflow: hidden;
+        }
+        .tier-label {
+            width: var(--tier-label-width); min-width: var(--tier-label-width);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem; color: rgba(0,0,0,0.6); outline: none;
+        }
+        .tier-content {
+            flex: 1; display: flex; flex-wrap: wrap; gap: var(--gap); padding: 12px;
+            max-width: calc((var(--img-size) * 7) + (var(--gap) * 7)); 
+        }
+
+        /* --- Item Bank (The Frame) --- */
+        .bank-wrapper {
+            background: rgba(255,255,255,0.03); padding: 20px; border-radius: 20px;
+            border: 2px dashed #333; transition: 0.3s;
+        }
+        .layout-side .bank-wrapper { width: var(--bank-area-size); min-height: 500px; }
+        .layout-bottom .bank-wrapper { width: var(--row-width); height: var(--bank-area-size); }
+
+        .item-bank { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
+
+        /* --- Draggable Items --- */
+        .item {
+            object-fit: cover; cursor: grab; box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), height 0.3s, transform 0.2s;
+        }
+        .tier-content .item { width: var(--img-size); height: var(--img-size); border-radius: 6px; }
+        .item-bank .item { width: var(--bank-img-size); height: var(--bank-img-size); border-radius: 10px; }
+
+        /* --- Settings Panel --- */
+        #settings-panel {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #1e1e1e; padding: 30px; border-radius: 24px;
+            display: none; flex-direction: column; gap: 15px;
+            box-shadow: 0 40px 100px rgba(0,0,0,1); z-index: 2000;
+            border: 1px solid #333; min-width: 360px;
+        }
+        .set-row { display: flex; flex-direction: column; gap: 5px; }
+        .set-row label { font-size: 11px; color: #aaa; text-transform: uppercase; }
+        input[type="range"] { accent-color: #fff; cursor: pointer; margin: 5px 0; }
+
+        .bank-hidden { display: none !important; }
+        #restore-ui {
+            position: fixed; bottom: 30px; left: 30px; width: 60px; height: 60px;
+            background: #fff; color: #000; border-radius: 50%; display: none;
+            align-items: center; justify-content: center; cursor: pointer; font-size: 24px;
+        }
+
+        .c1 { background: #ff7f7f; } .c2 { background: #ffbf7f; } .c3 { background: #ffff7f; }
+    </style>
+</head>
+<body class="layout-side">
+
+    <!-- Settings Menu -->
+    <div id="settings-panel">
+        <h2 style="margin:0 0 10px 0;">Control Center</h2>
+        
+        <div class="set-row">
+            <label>ตำแหน่งคลังรูป</label>
+            <select onchange="changeLayout(this.value)" style="padding:8px; background:#333; color:#fff; border:none; font-family:'Kanit';">
+                <option value="layout-side">วางด้านขวา (Sidebar)</option>
+                <option value="layout-bottom">วางด้านล่าง (Bottom Bar)</option>
+            </select>
+        </div>
+
+        <div class="set-row">
+            <label>ขนาดรูปในคลัง (Right/Bottom Box)</label>
+            <input type="range" min="80" max="300" value="140" oninput="updateVar('--bank-img-size', this.value + 'px')">
+        </div>
+
+        <div class="set-row">
+            <label id="area-label">ขนาดพื้นที่คลัง (พื้นที่รวม)</label>
+            <input type="range" min="200" max="1200" value="350" oninput="updateVar('--bank-area-size', this.value + 'px')">
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #333; margin: 5px 0;">
+
+        <div class="set-row">
+            <label>ขนาดรูปในเทียร์ (Inside Tier)</label>
+            <input type="range" min="50" max="150" value="100" oninput="updateVar('--img-size', this.value + 'px')">
+        </div>
+
+        <div class="set-row">
+            <label>ความกว้างช่องข้อความ (Label)</label>
+            <input type="range" min="50" max="250" value="100" oninput="updateVar('--tier-label-width', this.value + 'px')">
+        </div>
+
+        <div class="set-row">
+            <label>ความกว้างแถวทั้งหมด</label>
+            <input type="range" min="600" max="1500" value="900" oninput="updateVar('--row-width', this.value + 'px')">
+        </div>
+
+        <button onclick="toggleSettings()" style="background:#fff; color:#000; font-weight:bold;">DONE</button>
+    </div>
+
+    <!-- UI Buttons -->
+    <div id="main-ui" class="ui-container">
+        <button onclick="addTier()">+</button>
+        <button onclick="removeTier()">-</button>
+        <button onclick="toggleUI()">👁</button>
+        <button onclick="toggleSettings()">⚙️ SETTINGS</button>
+        <button style="background:#444; border:none;" onclick="document.getElementById('file-input').click()">UPLOAD</button>
+    </div>
+
+    <!-- Workspace -->
+    <div id="app-wrapper" class="app-wrapper layout-side">
+        <div id="tier-list-root" style="display:flex; flex-direction:column; gap:10px;">
+            <div class="tier-row"><div class="tier-label c1" contenteditable="true">S</div><div class="tier-content"></div></div>
+            <div class="tier-row"><div class="tier-label c2" contenteditable="true">A</div><div class="tier-content"></div></div>
+            <div class="tier-row"><div class="tier-label c3" contenteditable="true">B</div><div class="tier-content"></div></div>
+        </div>
+
+        <div id="bank-box" class="bank-wrapper bank-hidden">
+            <div id="item-bank" class="item-bank"></div>
+        </div>
+    </div>
+
+    <input type="file" id="file-input" multiple accept="image/*" style="display:none" onchange="processUpload(this.files)">
+    <button id="restore-ui" onclick="toggleUI()">👁</button>
+
+    <script>
+        const tierColors = ['#ff7f7f', '#ffbf7f', '#ffff7f', '#7fff7f', '#7fbfff', '#ff7fff'];
+        const sortConfig = { group: 'pro-tier', animation: 300, swapThreshold: 0.6, invertSwap: true, onEnd: () => refreshBank() };
+
+        function initDraggable() {
+            document.querySelectorAll('.tier-content, #item-bank').forEach(el => {
+                if (!el.sortableInstance) el.sortableInstance = new Sortable(el, sortConfig);
+            });
+        }
+
+        function changeLayout(val) {
+            const wrapper = document.getElementById('app-wrapper');
+            const label = document.getElementById('area-label');
+            wrapper.className = 'app-wrapper ' + val;
+            label.innerText = (val === 'layout-side') ? 'ความกว้างพื้นที่คลัง (Sidebar)' : 'ความสูงพื้นที่คลัง (Bottom Bar)';
+        }
+
+        function processUpload(files) {
+            const bank = document.getElementById('item-bank');
+            document.getElementById('bank-box').classList.remove('bank-hidden');
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const img = document.createElement('img');
+                    img.src = e.target.result; img.className = 'item';
+                    bank.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function addTier() {
+            const root = document.getElementById('tier-list-root');
+            const color = tierColors[root.children.length % tierColors.length];
+            const newRow = document.createElement('div');
+            newRow.className = 'tier-row';
+            newRow.innerHTML = `<div class="tier-label" style="background:${color}" contenteditable="true">?</div><div class="tier-content"></div>`;
+            root.appendChild(newRow);
+            initDraggable();
+        }
+
+        function removeTier() {
+            const root = document.getElementById('tier-list-root');
+            if (root.children.length > 0) {
+                const items = Array.from(root.lastElementChild.querySelector('.tier-content').children);
+                items.forEach(item => document.getElementById('item-bank').appendChild(item));
+                root.removeChild(root.lastElementChild);
+                refreshBank();
+            }
+        }
+
+        function toggleUI() {
+            const isHidden = document.getElementById('main-ui').classList.toggle('ui-hidden');
+            document.getElementById('restore-ui').style.display = isHidden ? 'flex' : 'none';
+        }
+
+        function toggleSettings() {
+            const panel = document.getElementById('settings-panel');
+            panel.style.display = (panel.style.display === 'flex') ? 'none' : 'flex';
+        }
+
+        function updateVar(name, val) { document.documentElement.style.setProperty(name, val); }
+
+        function refreshBank() {
+            const bank = document.getElementById('item-bank');
+            document.getElementById('bank-box').classList.toggle('bank-hidden', bank.children.length === 0);
+        }
+
+        initDraggable();
+    </script>
+</body>
+</html>
